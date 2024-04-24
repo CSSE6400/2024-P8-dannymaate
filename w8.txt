@@ -1,0 +1,65 @@
+w8.txt
+
+Q: What does it mean "Launch the service locally..."
+A: docker-compose up. Then try making API calls
+
+poetry run flask --app todo run -p 6400
+$ conda uninstall poetry
+$ conda install poetry
+
+# No need to do the below, it already exists (see pyproject.toml)
+$ poetry add watchtower
+$ poetry add psycopg2-binary
+$ poetry add flask-sqlalchemy
+
+URL (from docker-compose up): http://127.0.0.1:6400/
+
+CloudWatch > Log Insights
+	log_group: taskoverflow
+
+fields request_id, url, method, @timestamp, message.message, @message, @log @ingestionTime
+| filter not isempty(request_id) 
+| limit 400
+
+	generate new query
+	run query
+
+	> logs (390)
+
+Q: How do you refine your logging? Should I refine on AWS CloudWatch or python?
+A:
+	https://docs.aws.amazon.com/AmazonCloudWatch/latest/logs/CWL_AnalyzeLogData-discoverable-fields.html
+
+	https://docs.python.org/3/howto/logging.html
+
+	It appears you need to re-run docker-compose up when you update create_app()
+
+	When you do API calls, you should see logs appear 1m later on CloudWatch
+
+Q: Why was k6 built with JavaScript in mind?
+A: 
+
+Q: Should I stop docker-compose up when I run terraform apply?
+A: Yes. See image.tf, a ecr_repo is setup.
+
+E: https://k6.io/docs/javascript-api/jslib/utils/randomintbetween/
+
+Q: Where do I get the URL from?
+A: ECS > Clusters > taskoverflow > Services >taskoverflow > Tasks > 295412d31c2e43979db59adc8aba0bad > Configuration
+
+http://44.222.100.133:6400/
+
+P: ECS service taskoverflow logs... 
+exec /app/bin/docker-entrypoint: exec format error
+Add '--platform=linux/amd64' to Dockerfile header
+
+P: Why do I get...
+WARN[0376] Request Failed                                error="Delete \"$%7Burl%7D/$%7BwrongId%7D\": unsupported protocol scheme \"\""
+A: `${url}/${wrongId}` backticks are needed, not quotes ''
+
+P: Why did I get 85.60% checks?
+A: 
+
+P: Why did I get 4.02% checks after fixing the string format error?
+A: 
+

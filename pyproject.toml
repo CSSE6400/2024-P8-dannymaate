@@ -13,6 +13,7 @@ psycopg2 = "^2.9.9"
 gunicorn = "*"
 watchtower = "*"
 importlib-metadata = "*"
+psycopg2-binary = "^2.9.9"
 
 
 [build-system]
