@@ -1,0 +1,110 @@
+queries
+
+fields @timestamp, @message
+| fields tomillis(@timestamp) as millis
+| filter millis > 1578182400000  # Sunday, 5. January 2020 0:00:00
+     and millis < 1578268800000  # Sunday, 6. January 2020 0:00:00
+
+-------------------------------------
+fields request_id, url, method, @timestamp, message.message, @message
+| filter not isempty(request_id)
+| fields tomillis(@timestamp) as millis
+| filter millis > 1714187130000  # Saturday, 27 April 2024 13:05:30 GMT+10:00
+     and millis < 1714187140000  # Saturday, 27 April 2024 13:05:40 GMT+10:00
+| sort @timestamp asc
+| limit 1000
+
+observations?
+800 GET requests
+200 POST requests
+all are /api/v1/todos
+sqlalchemy.engine.Engine is common loc, others are "requests"
+-------------------------------------
+1714187120000 < millis < 1714187130000
+
+observations? 
+900 GET requests
+100 DELETE requests
+
+idea?
+Are the POST requests the source of the bottleneck? 
+No, bottleneck occurs again for 40s-50s
+
+1714187140000 < millis < 1714187150000
+
+Q: Does stats count(*) by bin(10s) reveal a bottle neck or is this just a high frequency of requests at this time?
+A: IDFK
+
+P: I am struggling to find the patterns
+A: 
+Ideas?
+- Use the pattern @message 
+- Filter messages by ["Request Failed", "request timeout", "...read: connection reset by peer"]
+- 
+
+"error="Get \"http://34.229.69.143:6400/api/v1/todos\": read tcp 192.168.1.107:58455->34.229.69.143:6400:"
+
+T: 40 very indecisive students create a task, realise they mistyped, delete it and start over.
+T: We want any auto-scaling behaviour to be triggered
+
+P: Why doesn't the planner finish running?
+A: It stops halfway through
+
+fields @timestamp, @message
+| filter message =~ /failed/
+
+fields @timestamp, @message
+| filter message =~ /timeout/
+
+
+fields @timestamp, url, method, @message, @logStream
+| filter not isempty(request_id)
+| fields tomillis(@timestamp) as millis
+| filter millis > 1714224570000 
+     and millis < 1714224580000
+| sort @timestamp asc
+| limit 1000
+
+
+fields @timestamp, @message, @logStream, @log
+| sort @timestamp desc
+| stats count(*) by bin(10s)
+| limit 1000
+
+1714224450000 < millis < 1714224460000
+GET 830  DELETE 80
+requests 412 sqlalchemy.engine.Engine 498
+Request started 68 Request Finished 68 _____ 280
+... 
+
+1714224570000 < millis < 1714224580000
+GET 2082  POST 360
+requests 914 sqlalchemy.engine.Engine 1528
+Request started 229 Request Finished 229 _____ 1221
+
+...
+
+1714224640000 < millis < 1714224650000
+GET 2080  POST 80
+requests 912 sqlalchemy.engine.Engine 1248
+/api/v1/todos 2080 /api/v1/todos/undefined 80
+Request started 228 Request Finished 228 _____ 1080
+
+1714224660000 < millis < 1714224670000
+GET 2090 DELETE 80
+/api/v1/todos 2090 /api/v1/todos/undefined 80
+requests 916 sqlalchemy.engine.Engine 1254
+Request started 229 Request Finished 229 _____ 1085
+
+1714224710000 <  < 1714224720000
+GET 2080 
+Request started 208 Request Finished 208 _____ 1040
+requests 832 sqlalchemy.engine.Engine 1248
+/api/v1/todos 2080
+...
+
+1714224770000 < millis < 1714224780000
+GET 260 DELETE 80
+Request started 46 Request Finished 46 _____ 170
+requests 184 sqlalchemy.engine.Engine 156
+/api/v1/todos 260 /api/v1/todos/undefined 80

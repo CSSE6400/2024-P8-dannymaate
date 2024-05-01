@@ -4,6 +4,8 @@ import watchtower, logging
 from flask import Flask, has_request_context, request 
 from flask_sqlalchemy import SQLAlchemy 
 import uuid 
+import time
+import socket
 
 class StructuredFormatter(watchtower.CloudWatchLogFormatter): 
    def format(self, record): 
@@ -16,6 +18,8 @@ class StructuredFormatter(watchtower.CloudWatchLogFormatter):
          record.msg['request_id'] = request.environ.get('REQUEST_ID') 
          record.msg['url'] = request.environ.get('PATH_INFO') 
          record.msg['method'] = request.environ.get('REQUEST_METHOD') 
+         record.msg['full_path'] = request.environ.get('RAW_URI')
+         record.msg['socket'] = request.environ.get('SOCKET')
       return super().format(record) 
 
 def create_app(config_overrides=None): 
@@ -33,23 +37,27 @@ def create_app(config_overrides=None):
    )
    handler.setFormatter(StructuredFormatter())
    app.logger.addHandler(handler)
+
    logging.getLogger().addHandler(handler)
    logging.getLogger('werkzeug').addHandler(handler)
    logging.getLogger("sqlalchemy.engine").addHandler(handler)
    logging.getLogger("sqlalchemy.engine").setLevel(logging.INFO)
 
    requests = logging.getLogger("requests") 
-   requests.addHandler(handler) 
+   requests.addHandler(handler)
 
    @app.before_request 
    def before_request(): 
      request.environ['REQUEST_ID'] = str(uuid.uuid4()) 
-     requests.info("Request started") 
+     request.environ['SOCKET'] = str(socket.gethostname()) 
+     requests.info("Request started")
+     start = time.time() 
  
    @app.after_request 
    def after_request(response): 
      requests.info("Request finished")
-     requests.debug('DEBUG') 
+     end = time.time()
+     requests.info(f"Time elapsed {end - start}")
      return response 
 
    # Load the models 

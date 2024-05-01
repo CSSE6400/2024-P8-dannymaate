@@ -61,5 +61,35 @@ P: Why did I get 85.60% checks?
 A: 
 
 P: Why did I get 4.02% checks after fixing the string format error?
+A:
+
+T: Fake data https://k6.io/docs/examples/data-parameterization/
+
+w8 sat review...
+checks 85.52%
+
+Q: Why has taskoverflow been left in an unusual state? What do the logs tell me?
 A: 
+
+Q: What are correlation ids?
+uuid4 is a correlation id, named request_id
+Request started at beginning of request
+Request finished at end of request (see what happens in between these messages)
+
+fields request_id, url, method, @timestamp, message.message, @message, @method 
+| filter not isempty(request_id)
+| pattern @message
+| limit 1000
+
+Why do we get this undefined token_value?
+token_value: "/api/v1/todos/undefined"
+
+{"timestamp": 1714187496.4487123, "location": "requests", "message": "Request finished", "request_id": "45b500a2-6ae1-4dfe-a2c7-2aa022a7e116", "url": "/api/v1/todos/undefined", "method": "DELETE"}
+
+	
+{"timestamp": 1714187496.4487123, "location": "requests", "message": {"timestamp": 1714187496.4487123, "location": "requests", "message": "Request finished", "request_id": "45b500a2-6ae1-4dfe-a2c7-2aa022a7e116", "url": "/api/v1/todos/undefined", "method": "DELETE"}, "request_id": "45b500a2-6ae1-4dfe-a2c7-2aa022a7e116", "url": "/api/v1/todos/undefined", "method": "DELETE"}
+
+Update: 28/04 12:52am w/ 85% check
+planner ✓ [===========] 20 VUs         07m00.4s/10m0s  400/400 shared iters
+studier ✓ [===========] 0000/2500 VUs  6m0s    
 

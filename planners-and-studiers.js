@@ -1,7 +1,7 @@
 import http from "k6/http"; 
 import { check, sleep } from "k6"; 
  
-const ENDPOINT = 'http://44.222.100.133:6400';
+const ENDPOINT = 'http://52.23.227.203:6400';
 
 export function studyingStudent() { 
    let url = ENDPOINT + '/api/v1/todos'; 
